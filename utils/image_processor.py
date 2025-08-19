@@ -10,9 +10,9 @@ import os
 
 
 class Image_Processor:
-    def __init__(self):
+    def __init__(self, thresh=5):
         # Initialize tools
-        self.NUCLEI_THRESHOLD = 5
+        self.NUCLEI_THRESHOLD = thresh
         self.stain_normalizer = MacenkoStainNormalizer()
         self.nuclei_detector = NucleiExtractor(batch_size=8)
         self.feature_extractor = DeepFeatureExtractor(architecture='resnet34', batch_size=8, patch_size=72)
@@ -115,7 +115,7 @@ class Image_Processor:
 
         # Save top patches for verification
         for i, patch in enumerate(top_patches):
-            patch_name = f"patch_{i}.png"
+            patch_name = f"histo_patch_{i}.png"
             filepath = os.path.join(save_dir, patch_name)
             Image.fromarray(patch).save(filepath)
             print(f"Saved: {filepath}")
