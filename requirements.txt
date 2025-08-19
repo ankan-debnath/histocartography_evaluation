@@ -1,0 +1,9 @@
+git+https://github.com/ankan-debnath/histocartography.git
+python-dotenv
+langchain_groq
+langchain
+requests
+Flask
+gunicorn
+nest-asyncio
+pyngrok
