@@ -32,6 +32,11 @@ class Image_Processor:
     def classify_image(self, image_path):
         image = np.array(Image.open(image_path))
 
+        # Ensure 3-channel RGB
+        if image is not None and image.ndim == 2:
+            image = np.stack([image]*3, axis=-1)
+
+
         # Get nuclei segmentation map (nuclei_map) and _ (additional output)
         nuclei_map, _ = self.nuclei_detector.process(image)
 
@@ -52,12 +57,27 @@ class Image_Processor:
         return norm_image
 
     def get_nuclei_graph(self, image):
-        """Run nuclei detection, feature extraction, and graph building."""
-        nuclei_map, nuclei_info = self.nuclei_detector.process(image)
-        features = self.feature_extractor.process(image, nuclei_map)
-        graph = self.knn_graph_builder.process(nuclei_map, features)
-        return nuclei_map, nuclei_info, graph
+      nuclei_map, nuclei_info = self.nuclei_detector.process(image)
+      features = self.feature_extractor.process(image, nuclei_map)
 
+      n_samples = len(nuclei_info)
+
+      # Case 1: No nuclei detected
+      if n_samples == 0:
+          return nuclei_map, nuclei_info, None
+
+      # Case 2: Only 1 nucleus detected → graph not possible
+      if n_samples == 1:
+          return nuclei_map, nuclei_info, None
+
+      # Case 3: Normal case (at least 2 nuclei)
+      k = min(self.knn_graph_builder.k, n_samples - 1)  # ensure valid k
+      graph_builder = KNNGraphBuilder(k=k, thresh=50, add_loc_feats=True)
+      graph = graph_builder.process(nuclei_map, features)
+
+      return nuclei_map, nuclei_info, graph
+
+      
     def divide_into_patches(self, image, patch_rows=3, patch_cols=3, overlap=0.2):
         """Divide the image into overlapping patches."""
         h, w, _ = image.shape

@@ -16,7 +16,9 @@ df = pd.read_csv('/root/.cache/kagglehub/datasets/samsrithajalukuri/pathvqa-data
 df = df.drop_duplicates(subset=["image"], keep="first")
 df['image_path'] = image_dir + '/' + df['image'] + '.png'
 
-for _, row in tqdm(df.iterrows(), len(df)):
+N = len(df)
+
+for _, row in tqdm(df.iloc[:N].iterrows(), total=N):
     image_path = row['image_path']
     image_id = row['image']
     classification = image_processor.classify_image(image_path)
